@@ -54,10 +54,7 @@ class Board: #env
             snake_obj = self.snakes[i]
             if snake_obj!=None:
                 self.place_snake(snake_obj, i==self.selfindex)
-        print("done bodies")
-        print("foods", self.foods)
         self.place_food(self.foods)
-        print("done foods")
     def get_cell(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
             return self.grid[y][x]
@@ -72,39 +69,40 @@ class Board: #env
                 self.kill_snake(snakeindex)
             elif (thissnake.head['x']<0 or thissnake.head['x']>=self.width or thissnake.head['y']<0 or thissnake.head['y']>=self.height):
                 self.kill_snake(snakeindex)
-            myhead = self.snakes[snakeindex].head
-            for i in range(len(self.snakes)):
-                if self.snakes[i]!=None:
-                    currentsnakeindex = self.snakes[i]
-                    thissnakebody_dict = currentsnakeindex.get_body()
-                    if myhead['x'] == currentsnakeindex.head['x'] and myhead['y'] == currentsnakeindex.head['y'] and i!=snakeindex:
-                        thissnakelength = thissnake.length
-                        currentsnakelength = currentsnakeindex.length
-                        if (thissnakelength>currentsnakelength):
-                            self.kill_snake(i)
-                        elif (thissnakelength<currentsnakelength):
-                            self.kill_snake(snakeindex)
-                        else:
-                            self.kill_snake(snakeindex)
-                            self.kill_snake(i)
-                    for i in range(1, len(thissnakebody_dict)):
-                        if thissnakebody_dict[i]['x'] == myhead['x'] and thissnakebody_dict[i]['y'] == myhead['y']:
-                            self.kill_snake(snakeindex)
+            if self.snakes[snakeindex]!=None:
+                myhead = self.snakes[snakeindex].head
+                for i in range(len(self.snakes)):
+                    if self.snakes[i]!=None:
+                        currentsnakeindex = self.snakes[i]
+                        thissnakebody_dict = currentsnakeindex.get_body()
+                        if myhead['x'] == currentsnakeindex.head['x'] and myhead['y'] == currentsnakeindex.head['y'] and i!=snakeindex:
+                            thissnakelength = thissnake.length
+                            currentsnakelength = currentsnakeindex.length
+                            if (thissnakelength>currentsnakelength):
+                                self.kill_snake(i)
+                            elif (thissnakelength<currentsnakelength):
+                                self.kill_snake(snakeindex)
+                            else:
+                                self.kill_snake(snakeindex)
+                                self.kill_snake(i)
+                        for i in range(1, len(thissnakebody_dict)):
+                            if thissnakebody_dict[i]['x'] == myhead['x'] and thissnakebody_dict[i]['y'] == myhead['y']:
+                                self.kill_snake(snakeindex)
          
     def step(self, myaction):
         myindex = self.selfindex
         self.move_snake(myindex, myaction)
+        self.update_board()
+        self.printself()
+        print("this is the board after only you made the move")
         for i in range(len(self.snakes)):
             if i!=myindex and self.snakes[i]!=None:
                 oppheadid = self.snakes[i].head
                 oppaction = input("Enter action (updownleftright) for snake with head "+str(oppheadid['x'])+'x, '+str(oppheadid['y'])+"y")
                 self.move_snake(i, oppaction)
-        print("moved snake")
         for i in range(len(self.snakes)):
             self.dead_check(i)
-        print("dead check complete")
         self.update_board()
-        print("updated board")
     def printself(self):
         print()
         for y in range(self.height):

@@ -12,6 +12,7 @@ class Snake:
     def move(self, direction, food_list):
         head_x = self.head['x']
         head_y = self.head['y']
+        new_head = {'x': head_x, 'y': head_y + 1}#dummy value
         if direction == 'up':
             new_head = {'x': head_x, 'y': head_y + 1}
         elif direction == 'down':
