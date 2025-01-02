@@ -33,3 +33,16 @@ class Snake:
         return ate
     def get_body(self):
         return self.body #dict form
+    def instartingspot(self):
+        instartingspot=True
+        if len(self.body)!=3:
+            return False
+        currenthead = self.body[0]
+        for i in range(len(self.body)):
+            if currenthead['x']==self.body[i]['x'] and currenthead['y'] == self.body[i]['y']:
+                pass
+            else:
+                instartingspot=False
+        if instartingspot:
+            print("this shit worked")
+        return instartingspot
