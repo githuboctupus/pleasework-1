@@ -4,9 +4,9 @@ from gymnasium import spaces
 import numpy
 from copy import deepcopy
 from time import sleep
-class Env(gymnasium.Env):
+class Env5by5(gymnasium.Env):
     def __init__(self, data):
-        super(Env, self).__init__()
+        super(Env5by5, self).__init__()
         self.startingdata = data
         self.debug=False
         youindex=0
@@ -15,7 +15,7 @@ class Env(gymnasium.Env):
                 youindex=i
         self.boardobject = Board.Board(self.startingdata, youindex)
         self.action_space = spaces.Discrete(4)  # 0: up, 1: down, 2: left, 3: right
-        self.observation_space = spaces.Box(low=0, high=1, shape=(11, 11, 5), dtype=numpy.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=(5, 5, 5), dtype=numpy.float32)
         self.reset()
     def reset(self, seed=None):
         youindex=0
