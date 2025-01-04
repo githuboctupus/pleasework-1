@@ -1,9 +1,10 @@
 import Board
 import Snake
 import json
-import stable_baselines3 as sb3
+import stable_baselines3 as sb3 #TODO: maybe transition to pytorch and use cnn
 import env
 import env5by5
+import env3channel
 import numpy
 from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -12,35 +13,38 @@ data_solo = {"game":{"id":"849055","ruleset":{"name":"standard","version":"v.1.2
 data_solo_corner = {"game":{"id":"902484","ruleset":{"name":"standard","version":"v.1.2.3"},"timeout":500},"turn":200,"you":{"health":100,"id":"you","name":"#22aa34","body":[{"x":0,"y":10},{"x":1,"y":10},{"x":2,"y":10}],"head":{"x":0,"y":10},"length":3},"board":{"food":[{"x":1,"y":5},{"x":7,"y":3},{"x":7,"y":4},{"x":5,"y":7},{"x":4,"y":3}],"height":11,"width":11,"snakes":[{"health":100,"id":"you","name":"#22aa34","body":[{"x":0,"y":10},{"x":1,"y":10},{"x":2,"y":10}],"head":{"x":0,"y":10},"length":3}]}}
 data_solo_5by5={"game":{"id":"849055","ruleset":{"name":"standard","version":"v.1.2.3"},"timeout":500},"turn":200,"you":{"health":100,"id":"you","name":"#22aa34","body":[{"x":1,"y":0},{"x":0,"y":0},{"x":0,"y":1}],"head":{"x":1,"y":0},"length":3},"board":{"food":[{"x":0,"y":3},{"x":2,"y":2}],"height":5,"width":5,"snakes":[{"health":100,"id":"you","name":"#22aa34","body":[{"x":1,"y":0},{"x":0,"y":0},{"x":0,"y":1}],"head":{"x":1,"y":0},"length":3}]}}
 #envir = env5by5.Env5by5(data_solo_5by5)
-envir = env.Env(data_solo_corner)
+#envir = env.Env(data_solo_corner)
+envir = env3channel.Env3channel(data)
 # model = DQN(
 #     "MlpPolicy",
 #     envir,
 #     exploration_initial_eps=1.0,
-#     exploration_fraction=0.25,
+#     exploration_fraction=0.3,
 #     exploration_final_eps=0.10,
 #     verbose=2,
 #     tensorboard_log="./ppo_battlesnake_tensorboard/"
 #     )
-# model = PPO(
-#     "MlpPolicy",
-#     envir,
-#     verbose=2,
-#     n_steps=2048,
-#     gamma=0.99,
-#     batch_size=64,
-#     ent_coef=0.20,
-#     tensorboard_log="./ppo_battlesnake_tensorboard/"
-# )
-model = PPO.load("snakemodelppo_dc1.1.4", env=envir)
+model = PPO(
+    "CnnPolicy",
+    envir,
+    verbose=2,
+    n_steps=2048,
+    gamma=0.999,
+    batch_size=64,
+    ent_coef=0.15,
+)
+#model = PPO.load("snakemodel_3channel_ppo_explorer_1.0.4", env=envir)
+#model.ent_coef=0.5 #explorer
+#model.ent_coef=0.35#hybrid-explorer
+#model.ent_coef = 0.2 #less explorer but still kinda
+#model.ent_coef=0.15
+#model.ent_coef = 0.05 #more deterministic
 model.learn(total_timesteps=100000, progress_bar=True)
 
 # Save the model after training
 #dc=don't crash
-model.save("snakemodelppo_dc1.1.5")
+#model.save("snakemodel_3channel_ppo_explorer_1.0.5")
 envir.reset()
-action, _states = model.predict(numpy.array(envir.returnmygrid()), deterministic=False)
-print(action)
 # mean_reward, std_reward = evaluate_policy(
 #     model, 
 #     envir, 

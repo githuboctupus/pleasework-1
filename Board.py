@@ -3,6 +3,7 @@ import stable_baselines3 as sb3
 import numpy
 from stable_baselines3 import PPO
 import random
+from copy import deepcopy
 class Board: #env
     #board is in reverse height order visually
     #cell format, 0=false, 1=true:
@@ -111,11 +112,11 @@ class Board: #env
         myindex = self.selfindex
         dideat = self.move_snake(myindex, myaction) #determine if eated
         if dideat!=None:
-            determinedreward+=10
+            determinedreward+=6.0
         #self.update_board()
         #self.printself()
         #print("this is the board after only you made the move")
-        model = PPO.load("snakemodelppo_dc1.1.4")
+        model = PPO.load("snakemodelppo_dc1.1.5")
         movelist = ['up', 'down', 'left', 'right']
         for i in range(len(self.snakes)):
             if i!=myindex and self.snakes[i]!=None:
@@ -212,3 +213,119 @@ class Board: #env
         return alldead
     def returngrid(self):
         return self.grid
+    def rotate_2d_array_clockwise(matrix):
+        return [list(row) for row in zip(*matrix[::-1])]
+    def aligngridtoup(self, snakeindex, grid):
+        targetsnake = self.snakes[snakeindex]
+        directions = [#add to head and compare to neck
+            [0, -1],#heading upward
+            [1, 0],#heading leftward
+            [0, 1],#heading downward
+            [-1, 0],#heading rightward
+        ]
+        newgrid = deepcopy(grid)
+        rotationnum = [0, 1, 2, 3]
+        directionindex = 0
+        for i in range(4):
+            if targetsnake.body[0]['x']+directions[i][0] == targetsnake.body[1]['x'] and targetsnake.body[0]['y']+directions[i][1] == targetsnake.body[1]['y']:
+                directionindex=i
+        for i in range(directionindex):
+            newgrid = deepcopy(self.rotate_2d_array_clockwise(newgrid))
+        return newgrid
+    def returngridjustfood(self):
+        foodgrid = []
+        horiz_border = []
+        for i in range((self.width)+2):
+            horiz_border.append(-1)
+        foodgrid.append(deepcopy(horiz_border))
+        for y in range((self.height)):
+            thisrow_food = []
+            thisrow_food.append(-1)
+            for x in range(self.width):
+                if self.grid[y][x] == [1, 0, 0, 0, 0]:
+                    thisrow_food.append(1)
+                else:
+                    thisrow_food.append(0)
+            thisrow_food.append(-1)
+            foodgrid.append(thisrow_food)
+        foodgrid.append(deepcopy(horiz_border))
+        foodgrid = deepcopy(self.aligngridtoup(self.selfindex, foodgrid))
+        return foodgrid
+    
+    def returngridjustself(self):
+        selfgrid = []
+        horiz_border = []
+        default_row = []
+        for i in range((self.width)+2):
+            horiz_border.append(-1)
+            if i==0 or i==self.width+1:
+                default_row.append(-1)
+            else:
+                default_row.append(0)
+        selfgrid.append(deepcopy(horiz_border))
+        for i in range(self.height):
+            selfgrid.append(deepcopy(default_row))
+        selfgrid.append(deepcopy(horiz_border))
+        if (self.snakes[self.selfindex]!=None):
+            mybody = self.snakes[self.selfindex].body
+            #print('mybodylen', len(mybody))
+            for i in range(len(mybody)):#head=3, tail=2, body=1
+                converted_bodycoord = [mybody[i]['x']+1, mybody[i]['y']+1]#plus one because im adding borders
+                #print(converted_bodycoord[0], "x", converted_bodycoord[1], 'y')
+                if i==0:#head
+                    selfgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 3
+                elif i==len(mybody)-1:
+                    #print('tailrow snapshot', selfgrid[converted_bodycoord[1]])
+                    selfgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 2
+                else:
+                    selfgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 1
+            selfgrid = deepcopy(self.aligngridtoup(self.selfindex, selfgrid))
+            return selfgrid
+        else:
+            selfgrid = deepcopy(self.aligngridtoup(self.selfindex, selfgrid))
+            return selfgrid
+    
+    def returngridjustopps(self):
+        oppgrid = []
+        horiz_border = []
+        default_row = []
+        for i in range((self.width)+2):
+            horiz_border.append(-1)
+            if i==0 or i==self.width+1:
+                default_row.append(-1)
+            else:
+                default_row.append(0)
+        oppgrid.append(deepcopy(horiz_border))
+        for i in range(self.height):
+            oppgrid.append(deepcopy(default_row))
+        oppgrid.append(deepcopy(horiz_border))
+        for i in range(len(self.snakes)):
+            if i!=self.selfindex and self.snakes[i]!=None:
+                thisoppbody = self.snakes[i].body
+                for i in range(len(thisoppbody)):#head=3, tail=2, body=1
+                    converted_bodycoord = [thisoppbody[i]['x']+1, thisoppbody[i]['y']+1]#plus one because im adding borders
+                    if i==0:#head
+                        oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 3
+                    elif i==len(thisoppbody)-1:
+                        oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 2
+                    else:
+                        oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = 1
+        oppgrid = deepcopy(self.aligngridtoup(self.selfindex, oppgrid))
+        return oppgrid
+    def printself3channel(self):
+        # Example 13x13 grids as normal lists
+        grid1 = self.returngridjustfood()
+        grid2 = self.returngridjustself()
+        grid3 = self.returngridjustopps()
+        # Print the grids side by side
+        for row1, row2, row3 in zip(grid1, grid2, grid3):
+            print(" ".join(f"{val:1}" for val in row1), "|", " ".join(f"{val:1}" for val in row2), "|", " ".join(f"{val:1}" for val in row3))
+    
+
+    def return5channel(self):
+        #TODO:
+        # your body, segments numbered
+        # all snake bodies, segments numbered
+        # foodgrid
+        # all snake bodies greater than or equal to you, segments numbered
+        # all snake bodies smaller than you, segments numbered
