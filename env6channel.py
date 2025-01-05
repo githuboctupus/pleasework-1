@@ -15,7 +15,7 @@ class Env6channel(gymnasium.Env):
                 youindex=i
         self.boardobject = Board.Board(self.startingdata, youindex)
         self.action_space = spaces.Discrete(4)  # 0: up, 1: down, 2: left, 3: right
-        self.observation_space = spaces.Box(low=-1, high=121, shape=(6, 13, 13), dtype=numpy.float32)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(6, 13, 13), dtype=numpy.uint8)
         self.reset()
     def reset(self, seed=None):
         youindex=0
@@ -72,10 +72,6 @@ class Env6channel(gymnasium.Env):
         #when server startsdone=True
         return observation, reward, done, False, {}
     def render(self):
-        self.boardobject.printself3channel()
+        self.boardobject.return6channel(justrender=True)
     def returnmygrid(self):
-        foodgrid = self.boardobject.returngridjustfood()
-        selfgrid = self.boardobject.returngridjustself()
-        oppgrid = self.boardobject.returngridjustopps()
-        returnme = [foodgrid, selfgrid, oppgrid]
-        return returnme
+        return self.boardobject.return6channel()

@@ -213,7 +213,7 @@ class Board: #env
         return alldead
     def returngrid(self):
         return self.grid
-    def rotate_2d_array_clockwise(matrix):
+    def rotate_2d_array_clockwise(self, matrix):
         return [list(row) for row in zip(*matrix[::-1])]
     def aligngridtoup(self, snakeindex, grid):
         targetsnake = self.snakes[snakeindex]
@@ -236,20 +236,21 @@ class Board: #env
         foodgrid = []
         horiz_border = []
         for i in range((self.width)+2):
-            horiz_border.append(-1)
+            horiz_border.append(0)
         foodgrid.append(deepcopy(horiz_border))
         for y in range((self.height)):
             thisrow_food = []
-            thisrow_food.append(-1)
+            thisrow_food.append(0)
             for x in range(self.width):
                 if self.grid[y][x] == [1, 0, 0, 0, 0]:
-                    thisrow_food.append(1)
+                    thisrow_food.append(2)
                 else:
-                    thisrow_food.append(0)
-            thisrow_food.append(-1)
+                    thisrow_food.append(1)
+            thisrow_food.append(0)
             foodgrid.append(thisrow_food)
         foodgrid.append(deepcopy(horiz_border))
-        foodgrid = deepcopy(self.aligngridtoup(self.selfindex, foodgrid))
+        if self.snakes[self.selfindex]!=None:
+            foodgrid = deepcopy(self.aligngridtoup(self.selfindex, foodgrid))
         return foodgrid
     
     def returngridjustself(self):
@@ -257,11 +258,11 @@ class Board: #env
         horiz_border = []
         default_row = []
         for i in range((self.width)+2):
-            horiz_border.append(-1)
+            horiz_border.append(0)
             if i==0 or i==self.width+1:
-                default_row.append(-1)
-            else:
                 default_row.append(0)
+            else:
+                default_row.append(1)
         selfgrid.append(deepcopy(horiz_border))
         for i in range(self.height):
             selfgrid.append(deepcopy(default_row))
@@ -269,14 +270,14 @@ class Board: #env
         if (self.snakes[self.selfindex]!=None):
             mybody = self.snakes[self.selfindex].body
             #print('mybodylen', len(mybody))
-            for i in range(len(mybody)):#head=3, tail=2, body=1
+            for i in range(len(mybody)-1, -1, -1):#head=3, tail=2, body=1
                 converted_bodycoord = [mybody[i]['x']+1, mybody[i]['y']+1]#plus one because im adding borders
                 #print(converted_bodycoord[0], "x", converted_bodycoord[1], 'y')
-                selfgrid[converted_bodycoord[1]][converted_bodycoord[0]] = i+1
+                #print(converted_bodycoord, "has number", i+2)
+                selfgrid[converted_bodycoord[1]][converted_bodycoord[0]] = (i+1)+1
             selfgrid = deepcopy(self.aligngridtoup(self.selfindex, selfgrid))
             return selfgrid
         else:
-            selfgrid = deepcopy(self.aligngridtoup(self.selfindex, selfgrid))
             return selfgrid
     
     def returngridjustopps(self, justsmaller=False, justdanger=False):
@@ -284,86 +285,94 @@ class Board: #env
         horiz_border = []
         default_row = []
         for i in range((self.width)+2):
-            horiz_border.append(-1)
+            horiz_border.append(0)
             if i==0 or i==self.width+1:
-                default_row.append(-1)
-            else:
                 default_row.append(0)
+            else:
+                default_row.append(1)
         oppgrid.append(deepcopy(horiz_border))
         for i in range(self.height):
             oppgrid.append(deepcopy(default_row))
         oppgrid.append(deepcopy(horiz_border))
-        for i in range(len(self.snakes)):
-            if i!=self.selfindex and self.snakes[i]!=None:
-                addsnake=False
-                if (justsmaller and len(self.snakes[i].body)<len(self.snakes[self.selfindex].body)):
-                    addsnake=True
-                elif (justdanger and len(self.snakes[i].body)>=len(self.snakes[self.selfindex].body)):
-                    addsnake=True
-                else:
-                    addsnake=True
-                if addsnake:
-                    thisoppbody = self.snakes[i].body
-                    for j in range(len(thisoppbody)):#head=3, tail=2, body=1
-                        converted_bodycoord = [thisoppbody[j]['x']+1, thisoppbody[j]['y']+1]#plus one because im adding borders
-                        oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = j+1
-        oppgrid = deepcopy(self.aligngridtoup(self.selfindex, oppgrid))
+        if self.snakes[self.selfindex]!=None:
+            for i in range(len(self.snakes)):
+                if i!=self.selfindex and self.snakes[i]!=None:
+                    addsnake=False
+                    if (justsmaller and len(self.snakes[i].body)<len(self.snakes[self.selfindex].body)):
+                        addsnake=True
+                    elif (justdanger and len(self.snakes[i].body)>=len(self.snakes[self.selfindex].body)):
+                        addsnake=True
+                    elif (not justsmaller and not justdanger):
+                        addsnake=True
+                    if addsnake:
+                        thisoppbody = self.snakes[i].body
+                        for j in range(len(thisoppbody)-1, -1, -1):#head=3, tail=2, body=1
+                            converted_bodycoord = [thisoppbody[j]['x']+1, thisoppbody[j]['y']+1]#plus one because im adding borders
+                            oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = (j+1)+1
+            if self.snakes[self.selfindex]!=None:
+                oppgrid = deepcopy(self.aligngridtoup(self.selfindex, oppgrid))
         return oppgrid
     def returngrideverysnake(self):
         oppgrid = []
         horiz_border = []
         default_row = []
         for i in range((self.width)+2):
-            horiz_border.append(-1)
+            horiz_border.append(0)
             if i==0 or i==self.width+1:
-                default_row.append(-1)
-            else:
                 default_row.append(0)
+            else:
+                default_row.append(1)
         oppgrid.append(deepcopy(horiz_border))
         for i in range(self.height):
             oppgrid.append(deepcopy(default_row))
         oppgrid.append(deepcopy(horiz_border))
-        for i in range(len(self.snakes)):
-            if self.snakes[i]!=None:
-                thisoppbody = self.snakes[i].body
-                for j in range(len(thisoppbody)):#head=3, tail=2, body=1
-                    converted_bodycoord = [thisoppbody[j]['x']+1, thisoppbody[j]['y']+1]#plus one because im adding borders
-                    oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = j+1
-        oppgrid = deepcopy(self.aligngridtoup(self.selfindex, oppgrid))
+        if self.snakes[self.selfindex]!=None:
+            for i in range(len(self.snakes)):
+                if self.snakes[i]!=None:
+                    thisoppbody = self.snakes[i].body
+                    for j in range(len(thisoppbody)-1, -1, -1):#head=3, tail=2, body=1
+                        converted_bodycoord = [thisoppbody[j]['x']+1, thisoppbody[j]['y']+1]#plus one because im adding borders
+                        oppgrid[converted_bodycoord[1]][converted_bodycoord[0]] = (j+1)+1
+            if self.snakes[self.selfindex]!=None:
+                oppgrid = deepcopy(self.aligngridtoup(self.selfindex, oppgrid))
         return oppgrid
-    def printself3channel(self):
+    def printself3channel(self, grid1, grid2, grid3):
         # Example 13x13 grids as normal lists
-        grid1 = self.returngridjustfood()
-        grid2 = self.returngridjustself()
-        grid3 = self.returngridjustopps()
         # Print the grids side by side
         for row1, row2, row3 in zip(grid1, grid2, grid3):
             print(" ".join(f"{val:1}" for val in row1), "|", " ".join(f"{val:1}" for val in row2), "|", " ".join(f"{val:1}" for val in row3))
     
 
-    def return6channel(self):
+    def return6channel(self, justrender=False):
         #TODO
         headgrid = []
         horiz_border = []
         default_row = []
         for i in range((self.width)+2):
-            horiz_border.append(-1)
+            horiz_border.append(0)
             if i==0 or i==self.width+1:
-                default_row.append(-1)
-            else:
                 default_row.append(0)
+            else:
+                default_row.append(1)
         headgrid.append(deepcopy(horiz_border))
         for i in range(self.height):
             headgrid.append(deepcopy(default_row))
         headgrid.append(deepcopy(horiz_border))
-        headgrid[self.snakes[self.selfindex].body[0]['y']][self.snakes[self.selfindex].body[0]['x']]=1
-        headgrid = deepcopy(self.aligngridtoup(headgrid))
+        if self.snakes[self.selfindex]!=None:
+            headgrid[self.snakes[self.selfindex].body[0]['y']][self.snakes[self.selfindex].body[0]['x']]=2
+            headgrid = deepcopy(self.aligngridtoup(self.selfindex, headgrid))
         selfgrid = self.returngridjustself()#already aligned to up
         allsnakesgrid = self.returngrideverysnake()#already aligned
+        if justrender:
+            self.printself3channel(headgrid, selfgrid, allsnakesgrid)
+            print()
         foodgrid = self.returngridjustfood()#already aligned
         dangersnakesgrid = self.returngridjustopps(False, True)
         victimsnakesgrid = self.returngridjustopps(True, False)
-        return numpy.stack(headgrid, selfgrid, allsnakesgrid, foodgrid, dangersnakesgrid, victimsnakesgrid, axis=0)
+        if justrender:
+            self.printself3channel(foodgrid, dangersnakesgrid, victimsnakesgrid)
+        if not justrender:
+            return numpy.stack([headgrid, selfgrid, allsnakesgrid, foodgrid, dangersnakesgrid, victimsnakesgrid], axis=0)
         #grid with just your head
         # your body, segments numbered
         # all snake bodies, segments numbered
