@@ -44,9 +44,8 @@ class Env6channel(gymnasium.Env):
         if action==3:
             convertedaction='right'
         #print("MYACTION", convertedaction)
-        reward=1.0#give more guidance rewards
         #previousboardstate = numpy.array(deepcopy(self.boardobject.returngrid()), dtype=numpy.float32)
-        reward+=self.boardobject.step(convertedaction)
+        self.boardobject.step(convertedaction)
         #observation = self.boardobject.returngrid()
         # foodgrid = numpy.array(self.boardobject.returngridjustfood())
         # selfgrid = numpy.array(self.boardobject.returngridjustself())
@@ -57,16 +56,17 @@ class Env6channel(gymnasium.Env):
             print("final board returned for observation (after action)")
         #reward = float(input("Enter a FLOAT reward for yousnake's move (resulting in observation):"))
         done=self.boardobject.isjoever()
+        reward=0
         if (done):
             if self.debug:
                 print("JOEVER")
-            reward=-100.0
+            reward=-1
             done=True
         elif (self.boardobject.iswon()):
             print("WON")
             if self.debug:
                 print("WON")
-            reward=160.0
+            reward=1
             done=True
         #print("Reward:", reward)
         #when server startsdone=True

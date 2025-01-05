@@ -64,27 +64,27 @@ policy_kwargs = dict(
     features_extractor_class=CustomCNN,
     features_extractor_kwargs=dict(features_dim=256),  # Adjust features_dim as needed
 )
-model = PPO(
-    "CnnPolicy",
-    envir,
-    verbose=2,
-    n_steps=2048,
-    gamma=0.999,
-    batch_size=64,
-    ent_coef=0.25,
-    policy_kwargs=policy_kwargs
-)
-#model = PPO.load("snakemodel_3channel_ppo_explorer_1.0.4", env=envir)
+# model = PPO(
+#     "CnnPolicy",
+#     envir,
+#     verbose=2,
+#     n_steps=1024,
+#     gamma=0.999,
+#     batch_size=64,
+#     ent_coef=0.25,
+#     policy_kwargs=policy_kwargs
+# )
+model = PPO.load("snakemodel_cnn_1.0.0", env=envir)
 #model.ent_coef=0.5 #explorer
 #model.ent_coef=0.35#hybrid-explorer
 #model.ent_coef = 0.2 #less explorer but still kinda
 #model.ent_coef=0.15
 #model.ent_coef = 0.05 #more deterministic
-model.learn(total_timesteps=10, progress_bar=True)
+model.learn(total_timesteps=50000, progress_bar=True)
 
 # Save the model after training
 #dc=don't crash
-#model.save("snakemodel_3channel_ppo_explorer_1.0.5")
+model.save("snakemodel_cnn_1.0.0")
 envir.reset()
 # mean_reward, std_reward = evaluate_policy(
 #     model, 
